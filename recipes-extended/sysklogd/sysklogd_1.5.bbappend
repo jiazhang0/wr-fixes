@@ -8,17 +8,21 @@
 #
 # Upstream-status: pending: parse_syslog_conf.patch
 
-PRINC = "5"
+PRINC = "6"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI += "file://parse_syslog_conf.patch \
 	file://syslog.logrotate"
 
-RDEPENDS_${PN} += "logrotate"
-
 do_install_append () {
 	install -d ${D}${sysconfdir}/logrotate.d
 	install -m 644 ${WORKDIR}/syslog.logrotate \
 		${D}${sysconfdir}/logrotate.d/syslog
 }
+
+# logrotate sub-package
+PACKAGES =+ "${PN}-logrotate"
+RDEPENDS_${PN}-logrotate = "sysklogd logrotate"
+RCONFLICTS_${PN}-logrotate = "syslog-ng-logrotate"
+FILES_${PN}-logrotate = "${sysconfdir}/logrotate.d/syslog"

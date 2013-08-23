@@ -1,4 +1,4 @@
-# /etc/logrotate.d/syslog - Ported from Debian
+# /etc/logrotate.d/syslog - Provided by sysklogd-logrotate
 
 /var/log/syslog
 {
