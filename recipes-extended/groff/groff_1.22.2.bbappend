@@ -7,4 +7,4 @@
 
 PR .= ".0"
 
-RDEPENDS_${PN} += "sed"
+RDEPENDS_${PN} += "sed perl"
