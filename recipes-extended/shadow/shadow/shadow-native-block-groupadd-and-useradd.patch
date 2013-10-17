@@ -1,0 +1,196 @@
+This patch is only for shadow-native to fix the locking failure
+issue when running groupadd/useradd in parallel:
+
+groupadd: cannot lock /etc/group; try again later.
+WARNING: groupadd command did not succeed. Retrying...
+ERROR: tried running groupadd command 10 times without success, giving up
+
+The tools useradd and groupadd in shadow-native use a trylock with
+a default timeout of 15 seconds. Sometimes this fails. A change to
+useradd.bbclass was made to retry the command 10 times. This still
+fails some times. While we don't yet understand the root cause of
+the extended delay, it is presumably due to pseudo's relatively
+low IO performance. The locking for the native tools was changed
+to block indefinitely rather than arbitrarily increasing the
+retry count or extending the timeout.
+
+Signed-off-by: Jackie Huang <jackie.huang@windriver.com>
+---
+ lib/groupio.c  |    8 ++++++++
+ lib/pwio.c     |    8 ++++++++
+ lib/sgroupio.c |    8 ++++++++
+ lib/shadowio.c |    8 ++++++++
+ src/groupadd.c |   12 ++++++------
+ src/useradd.c  |   24 ++++++++++++------------
+ 6 files changed, 50 insertions(+), 18 deletions(-)
+
+diff --git a/lib/groupio.c b/lib/groupio.c
+index 5aa5f74..2d21423 100644
+--- a/lib/groupio.c
++++ b/lib/groupio.c
+@@ -137,6 +137,14 @@ int gr_lock (void)
+ 	return commonio_lock (&group_db);
+ }
+ 
++int gr_block (void)
++{
++	while(gr_lock() == 0) {
++		sleep(1);
++	}
++	return 1;
++}
++
+ int gr_open (int mode)
+ {
+ 	return commonio_open (&group_db, mode);
+diff --git a/lib/pwio.c b/lib/pwio.c
+index 112dc61..13eb80d 100644
+--- a/lib/pwio.c
++++ b/lib/pwio.c
+@@ -118,6 +118,14 @@ int pw_lock (void)
+ 	return commonio_lock (&passwd_db);
+ }
+ 
++int pw_block (void)
++{
++	while(pw_lock() == 0) {
++		sleep(1);
++	}
++	return 1;
++}
++
+ int pw_open (int mode)
+ {
+ 	return commonio_open (&passwd_db, mode);
+diff --git a/lib/sgroupio.c b/lib/sgroupio.c
+index 64a9875..f65597f 100644
+--- a/lib/sgroupio.c
++++ b/lib/sgroupio.c
+@@ -218,6 +218,14 @@ int sgr_lock (void)
+ 	return commonio_lock (&gshadow_db);
+ }
+ 
++int sgr_block (void)
++{
++	while(sgr_lock() == 0) {
++		sleep(1);
++	}
++	return 1;
++}
++
+ int sgr_open (int mode)
+ {
+ 	return commonio_open (&gshadow_db, mode);
+diff --git a/lib/shadowio.c b/lib/shadowio.c
+index d80f938..739cd24 100644
+--- a/lib/shadowio.c
++++ b/lib/shadowio.c
+@@ -123,6 +123,14 @@ int spw_lock (void)
+ 	return commonio_lock (&shadow_db);
+ }
+ 
++int spw_block (void)
++{
++	while(spw_lock() == 0) {
++		sleep(1);
++	}
++	return 1;
++}
++
+ int spw_open (int mode)
+ {
+ 	return commonio_open (&shadow_db, mode);
+diff --git a/src/groupadd.c b/src/groupadd.c
+index 66b38de..67ce645 100644
+--- a/src/groupadd.c
++++ b/src/groupadd.c
+@@ -323,20 +323,20 @@ static void open_files (void)
+ {
+ 	/* First, lock the databases */
+ 	if (gr_lock () == 0) {
+-		fprintf (stderr,
+-		         _("%s: cannot lock %s; try again later.\n"),
++		fprintf (stdout,
++		         _("%s: cannot lock %s; waiting.\n"),
+ 		         Prog, gr_dbname ());
+-		exit (E_GRP_UPDATE);
++		gr_block();
+ 	}
+ 	add_cleanup (cleanup_unlock_group, NULL);
+ 
+ #ifdef	SHADOWGRP
+ 	if (is_shadow_grp) {
+ 		if (sgr_lock () == 0) {
+-			fprintf (stderr,
+-			         _("%s: cannot lock %s; try again later.\n"),
++			fprintf (stdout,
++			         _("%s: cannot lock %s; waiting.\n"),
+ 			         Prog, sgr_dbname ());
+-			exit (E_GRP_UPDATE);
++			sgr_block();
+ 		}
+ 		add_cleanup (cleanup_unlock_gshadow, NULL);
+ 	}
+diff --git a/src/useradd.c b/src/useradd.c
+index 2102630..6be3abf 100644
+--- a/src/useradd.c
++++ b/src/useradd.c
+@@ -1479,10 +1479,10 @@ static void close_files (void)
+ static void open_files (void)
+ {
+ 	if (pw_lock () == 0) {
+-		fprintf (stderr,
+-		         _("%s: cannot lock %s; try again later.\n"),
++		fprintf (stdout,
++		         _("%s: cannot lock %s; waiting.\n"),
+ 		         Prog, pw_dbname ());
+-		exit (E_PW_UPDATE);
++		pw_block();
+ 	}
+ 	pw_locked = true;
+ 	if (pw_open (O_RDWR) == 0) {
+@@ -1491,10 +1491,10 @@ static void open_files (void)
+ 	}
+ 	if (is_shadow_pwd) {
+ 		if (spw_lock () == 0) {
+-			fprintf (stderr,
+-			         _("%s: cannot lock %s; try again later.\n"),
++			fprintf (stdout,
++			         _("%s: cannot lock %s; waiting.\n"),
+ 			         Prog, spw_dbname ());
+-			fail_exit (E_PW_UPDATE);
++			spw_block();
+ 		}
+ 		spw_locked = true;
+ 		if (spw_open (O_RDWR) == 0) {
+@@ -1509,10 +1509,10 @@ static void open_files (void)
+ 	 * Lock and open the group file.
+ 	 */
+ 	if (gr_lock () == 0) {
+-		fprintf (stderr,
+-		         _("%s: cannot lock %s; try again later.\n"),
++		fprintf (stdout,
++		         _("%s: cannot lock %s; waiting.\n"),
+ 		         Prog, gr_dbname ());
+-		fail_exit (E_GRP_UPDATE);
++		gr_block();
+ 	}
+ 	gr_locked = true;
+ 	if (gr_open (O_RDWR) == 0) {
+@@ -1522,10 +1522,10 @@ static void open_files (void)
+ #ifdef  SHADOWGRP
+ 	if (is_shadow_grp) {
+ 		if (sgr_lock () == 0) {
+-			fprintf (stderr,
+-			         _("%s: cannot lock %s; try again later.\n"),
++			fprintf (stdout,
++			         _("%s: cannot lock %s; waiting.\n"),
+ 			         Prog, sgr_dbname ());
+-			fail_exit (E_GRP_UPDATE);
++			sgr_block();
+ 		}
+ 		sgr_locked = true;
+ 		if (sgr_open (O_RDWR) == 0) {
+-- 
+1.7.4
+
