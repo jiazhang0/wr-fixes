@@ -1,0 +1,28 @@
+From bec10469684c7edf1cb572f357010dbb314ab513 Mon Sep 17 00:00:00 2001
+From: "Song.Li" <Song.Li@windriver.com>
+Date: Tue, 26 Jun 2012 17:16:07 +0800
+Subject: [PATCH] change return value of netstat -s command
+
+The return value of netstat -s command is 1.
+It should be 0.This is caused by a debian patch.
+So change it back to 0.
+---
+ netstat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/netstat.c b/netstat.c
+index c3a7bb1..fcfa17d 100644
+--- a/netstat.c
++++ b/netstat.c
+@@ -1766,7 +1766,7 @@ int main
+             else
+                  printf("Address type not supported for stats\n");
+         }
+-        exit(1);
++        exit(0);
+     }
+     
+     if (flag_rou) {
+-- 
+1.7.9.5
+
