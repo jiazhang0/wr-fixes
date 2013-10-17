@@ -1,0 +1,208 @@
+misc.test: fix the order of expected output of getfacl
+
+root/permissions.test: this test requires that the daemon
+user is in groups bin and daemon, so add it into bin group
+before testing start. 
+
+Signed-off-by: Jackie Huang <jackie.huang@windriver.com>
+---
+ test/misc.test             |   38 +++++++++++++++++++-------------------
+ test/root/permissions.test |    1 +
+ 2 files changed, 20 insertions(+), 19 deletions(-)
+
+diff --git a/test/misc.test b/test/misc.test
+index eab9d17..6754be3 100644
+--- a/test/misc.test
++++ b/test/misc.test
+@@ -79,8 +79,8 @@ Multiple users
+ 
+ 	$ getfacl --omit-header f
+ 	> user::rw-
+-	> user:bin:rw-
+ 	> user:daemon:r--
++	> user:bin:rw-
+ 	> group::r--
+ 	> mask::rw-
+ 	> other::r--
+@@ -94,8 +94,8 @@ Multiple groups
+ 
+ 	$ getfacl --omit-header f
+ 	> user::rw-
+-	> user:bin:rw-
+ 	> user:daemon:r--
++	> user:bin:rw-
+ 	> group::r--
+ 	> group:daemon:r--
+ 	> group:users:rw-
+@@ -111,8 +111,8 @@ Remove one group
+ 
+ 	$ getfacl --omit-header f
+ 	> user::rw-
+-	> user:bin:rw-
+ 	> user:daemon:r--
++	> user:bin:rw-
+ 	> group::r--
+ 	> group:daemon:r--
+ 	> mask::rw-
+@@ -146,8 +146,8 @@ Default ACL
+ 
+ 	$ getfacl --omit-header d
+ 	> user::rwx
+-	> user:bin:rwx
+ 	> user:daemon:rw-
++	> user:bin:rwx
+ 	> group::r-x
+ 	> mask::rwx
+ 	> other::---
+@@ -236,16 +236,16 @@ Add some users and groups
+ 
+ 	$ getfacl --omit-header d/d
+ 	> user::rwx
+-	> user:bin:rwx	#effective:r-x
+ 	> user:daemon:r-x
++	> user:bin:rwx	#effective:r-x
+ 	> group::r-x
+ 	> group:daemon:rwx	#effective:r-x
+ 	> group:users:r-x
+ 	> mask::r-x
+ 	> other::---
+ 	> default:user::rwx
+-	> default:user:bin:rwx	#effective:r-x
+ 	> default:user:daemon:r-x
++	> default:user:bin:rwx	#effective:r-x
+ 	> default:group::r-x
+ 	> default:mask::r-x
+ 	> default:other::---
+@@ -262,16 +262,16 @@ Symlink in directory with default ACL?
+ 
+ 	$ getfacl --omit-header d/l
+ 	> user::rwx
+-	> user:bin:rwx	#effective:r-x
+ 	> user:daemon:r-x
++	> user:bin:rwx	#effective:r-x
+ 	> group::r-x
+ 	> group:daemon:rwx	#effective:r-x
+ 	> group:users:r-x
+ 	> mask::r-x
+ 	> other::---
+ 	> default:user::rwx
+-	> default:user:bin:rwx	#effective:r-x
+ 	> default:user:daemon:r-x
++	> default:user:bin:rwx	#effective:r-x
+ 	> default:group::r-x
+ 	> default:mask::r-x
+ 	> default:other::---
+@@ -287,16 +287,16 @@ Does mask manipulation work?
+ 
+ 	$ getfacl --omit-header d/d
+ 	> user::rwx
+-	> user:bin:r-x
+ 	> user:daemon:r-x
++	> user:bin:r-x
+ 	> group::r-x
+ 	> group:daemon:r-x
+ 	> group:users:r-x
+ 	> mask::r-x
+ 	> other::---
+ 	> default:user::rwx
+-	> default:user:bin:rwx	#effective:r-x
+ 	> default:user:daemon:r-x
++	> default:user:bin:rwx	#effective:r-x
+ 	> default:group::r-x
+ 	> default:mask::r-x
+ 	> default:other::---
+@@ -308,16 +308,16 @@ Does mask manipulation work?
+ 
+ 	$ getfacl --omit-header d/d
+ 	> user::rwx
+-	> user:bin:r-x
+ 	> user:daemon:r-x
++	> user:bin:r-x
+ 	> group::r-x
+ 	> group:daemon:r-x
+ 	> group:users:r-x
+ 	> mask::r-x
+ 	> other::---
+ 	> default:user::rwx
+-	> default:user:bin:rwx
+ 	> default:user:daemon:r-x
++	> default:user:bin:rwx
+ 	> default:group::r-x
+ 	> default:mask::rwx
+ 	> default:other::---
+@@ -333,8 +333,8 @@ Remove the default ACL
+ 
+ 	$ getfacl --omit-header d
+ 	> user::rwx
+-	> user:bin:rwx
+ 	> user:daemon:rw-
++	> user:bin:rwx
+ 	> group::r-x
+ 	> mask::rwx
+ 	> other::---
+@@ -373,14 +373,14 @@ Now, chmod should change the group_obj entry
+ 
+ 	$ getfacl --omit-header d
+ 	> user::rwx
+-	> user:bin:r-x
+ 	> user:daemon:rwx
++	> user:bin:r-x
+ 	> group::rwx
+ 	> mask::rwx
+ 	> other::r-x
+ 	> default:user::rwx
+-	> default:user:bin:r-x
+ 	> default:user:daemon:rwx
++	> default:user:bin:r-x
+ 	> default:group::rwx
+ 	> default:mask::rwx
+ 	> default:other::r-x
+@@ -392,14 +392,14 @@ Now, chmod should change the group_obj entry
+ 
+ 	$ getfacl --omit-header d
+ 	> user::rwx
+-	> user:bin:r-x
+ 	> user:daemon:rwx	#effective:r-x
++	> user:bin:r-x
+ 	> group::rwx	#effective:r-x
+ 	> mask::r-x
+ 	> other::---
+ 	> default:user::rwx
+-	> default:user:bin:r-x
+ 	> default:user:daemon:rwx
++	> default:user:bin:r-x
+ 	> default:group::rwx
+ 	> default:mask::rwx
+ 	> default:other::r-x
+@@ -411,14 +411,14 @@ Now, chmod should change the group_obj entry
+ 
+ 	$ getfacl --omit-header d
+ 	> user::rwx
+-	> user:bin:r-x
+ 	> user:daemon:rwx	#effective:r-x
++	> user:bin:r-x
+ 	> group::rwx	#effective:r-x
+ 	> mask::r-x
+ 	> other::---
+ 	> default:user::rwx
+-	> default:user:bin:r-x
+ 	> default:user:daemon:rwx
++	> default:user:bin:r-x
+ 	> default:group::rwx
+ 	> default:mask::rwx
+ 	> default:other::r-x
+diff --git a/test/root/permissions.test b/test/root/permissions.test
+index afaf5f0..5365e2b 100644
+--- a/test/root/permissions.test
++++ b/test/root/permissions.test
+@@ -6,6 +6,7 @@ listed in parentheses.
+ 	bin (bin)
+ 	daemon (bin, daemon)
+ 
++	$ usermod -a -G bin daemon
+ 
+ Cry immediately if we are not running as root.
+ 
+-- 
+1.7.4
+
