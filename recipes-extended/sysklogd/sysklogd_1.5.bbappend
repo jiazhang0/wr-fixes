@@ -17,9 +17,6 @@ SRC_URI += "file://parse_syslog_conf.patch \
 
 RDEPENDS_${PN} += "logrotate"
 
-PROVIDES += "virtual/syslog"
-RPROVIDES_${PN} += "virtual/syslog"
-
 do_install_append () {
 	install -d ${D}${sysconfdir}/logrotate.d
 	install -m 644 ${WORKDIR}/syslog.logrotate \
