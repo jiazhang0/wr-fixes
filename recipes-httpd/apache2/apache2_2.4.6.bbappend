@@ -15,6 +15,10 @@ do_configure_prepend() {
 do_install_append() {
 	install -d ${D}${sysconfdir}/default/volatiles
 	install -m 0644 ${WORKDIR}/volatiles.04_apache2 ${D}${sysconfdir}/default/volatiles/volatiles.04_apache2
+
+	# The /var/run is introduced by the --enable-layout=Debian, remove it as
+	# it is created on startup.
+	rm -rf ${D}${localstatedir}/run
 }
 
 FILES_${PN} += "${libdir}/cgi-bin"
