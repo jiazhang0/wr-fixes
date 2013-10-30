@@ -7,7 +7,7 @@ This layer provides the fixes to other components of the system
 
 Dependencies
 ------------
-This layer depends on the oe-core version supplied with Wind River Linux.
+This layer depends on the version of oe-core supplied with Wind River Linux.
 
 This layer also enhances a few items from other Wind River Linux layers. If you
 choose not to use the other layers, you may need to add the following to your
@@ -15,7 +15,7 @@ local.conf:
 
 BB_DANGLINGAPPENDS_WARNONLY = "1"
 
-Otherwise the system will error out on bbappend files that reference recipes
+Otherwise, the system will error out on bbappend files that reference recipes
 that do not exist.
 
 
