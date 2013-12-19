@@ -12,15 +12,3 @@ PRINC = "1"
 SRC_URI += "file://do-not-pass-CFLAGS-to-native.patch \
             file://nfs-utils-support-mountprog-and-nfsprog-options.patch \
 "
-
-
-inherit useradd
-
-USERADD_PACKAGES = "${PN}"
-USERADD_PARAM_${PN} = "-d /var/lib/nfs -r -s /bin/false rpcuser"
-
-do_install_append () {
-	chown rpcuser ${D}/var/lib/nfs
-	chown rpcuser ${D}/var/lib/nfs/sm
-	chown rpcuser ${D}/var/lib/nfs/sm.bak
-}
