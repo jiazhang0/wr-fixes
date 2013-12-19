@@ -443,6 +443,14 @@ else
 	echo "Fail to creat Dirnames file"
 fi
 
+[ -x /sbin/ldconfig ] && {
+echo ""
+echo "---------------------------------"
+echo "Update cache"
+/sbin/ldconfig
+check;
+}
+
 # Check loop device
 if [ ! -b /dev/loop0 ]
 then
