@@ -36,6 +36,12 @@ nettools_do_patch_v2() {
 		rm -rf ${S}/.pc ${S}/debian
 	fi
 	patch -p1 < ${WORKDIR}/${BPN}_${PV}.diff	
+
+	# Use quilt to process user's patches
+	for patch in ${WORKDIR}/*.patch; do
+		cp -f $patch ${S}/debian/patches
+		echo "${patch##*/}" >> ${S}/debian/patches/series
+	done
 	QUILT_PATCHES=${S}/debian/patches QUILT_SERIES=${S}/debian/patches/series quilt push -a
 	mv ${S}/.pc ${S}/.pc-nettools
 }
@@ -43,5 +49,4 @@ nettools_do_patch_v2() {
 # We invoke base do_patch at end, to incorporate any local patch
 python do_patch() {
     bb.build.exec_func('nettools_do_patch_v2', d)
-    bb.build.exec_func('patch_do_patch', d)
 }
