@@ -10,6 +10,7 @@ SRC_URI += "\
       file://ipsec-tools-libdir.patch \
       file://0001-racoon-pfkey-avoid-potential-null-pointer-dereferenc.patch \
       file://racoon-check-invalid-pointers.patch \
+      file://racoon-check-invalid-ivm.patch \
 "
 
 PACKAGECONFIG ??= " \
