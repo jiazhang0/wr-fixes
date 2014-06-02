@@ -15,6 +15,7 @@ SRC_URI += "\
 SRC_URI_append_class-target = " \
            file://add_root_cmd_options.patch \
            file://add_root_cmd_groupmems.patch \
+           file://fix_groupdel_arg_processing.patch \
            "
 
 PRINC = "2"
