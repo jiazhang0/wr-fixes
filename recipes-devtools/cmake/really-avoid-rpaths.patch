@@ -1,0 +1,13 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -554,7 +554,9 @@ endif()
+ # since this one has much better RPATH features than cmake 2.2.
+ # The executables are then built with the RPATH for the libraries outside
+ # the build tree, which is both the build and the install RPATH.
+-if (UNIX)
++#
++#if (UNIX)
++if (FALSE)
+   if(   CMAKE_USE_SYSTEM_CURL   OR  CMAKE_USE_SYSTEM_ZLIB
+         OR  CMAKE_USE_SYSTEM_EXPAT  OR  CTEST_USE_XMLRPC  OR  CURSES_NEED_RPATH  OR  QT_NEED_RPATH)
+     set(CMAKE_SKIP_RPATH OFF CACHE INTERNAL "CMake built with RPATH.")

@@ -1,0 +1,208 @@
+Add additional messages to indicate why locking failed.
+
+This patch is from debian:
+http://lists.alioth.debian.org/pipermail/pkg-shadow-commits/2011-July/003444.html
+
+This could be removed after we find out root cause of locking
+failure of useradd/groupadd.
+
+Signed-off-by: Jackie Huang <jackie.huang@windriver.com>
+---
+ lib/commonio.c |   75 ++++++++++++++++++++++++++++++++++++++++++++++++++------
+ lib/commonio.h |    2 +-
+ 2 files changed, 68 insertions(+), 9 deletions(-)
+
+Index: shadow-4.1.4.3/lib/commonio.c
+===================================================================
+--- shadow-4.1.4.3.orig/lib/commonio.c
++++ shadow-4.1.4.3/lib/commonio.c
+@@ -51,10 +51,11 @@
+ #include "prototypes.h"
+ #include "commonio.h"
+ 
++char *Prog;
+ /* local function prototypes */
+ static int lrename (const char *, const char *);
+ static int check_link_count (const char *file);
+-static int do_lock_file (const char *file, const char *lock);
++static int do_lock_file (const char *file, const char *lock, bool log);
+ static /*@null@*/ /*@dependent@*/FILE *fopen_set_perms (
+ 	const char *name,
+ 	const char *mode,
+@@ -132,7 +133,7 @@ static int check_link_count (const char 
+ }
+ 
+ 
+-static int do_lock_file (const char *file, const char *lock)
++static int do_lock_file (const char *file, const char *lock, bool log)
+ {
+ 	int fd;
+ 	pid_t pid;
+@@ -142,6 +143,11 @@ static int do_lock_file (const char *fil
+ 
+ 	fd = open (file, O_CREAT | O_EXCL | O_WRONLY, 0600);
+ 	if (-1 == fd) {
++		if (log) {
++			(void) fprintf (stderr,
++			                "%s: %s: %s\n",
++			                Prog, file, strerror (errno));
++		}
+ 		return 0;
+ 	}
+ 
+@@ -149,6 +155,11 @@ static int do_lock_file (const char *fil
+ 	snprintf (buf, sizeof buf, "%lu", (unsigned long) pid);
+ 	len = (ssize_t) strlen (buf) + 1;
+ 	if (write (fd, buf, (size_t) len) != len) {
++		if (log) {
++			(void) fprintf (stderr,
++			                "%s: %s: %s\n",
++			                Prog, file, strerror (errno));
++		}
+ 		(void) close (fd);
+ 		unlink (file);
+ 		return 0;
+@@ -157,12 +168,22 @@ static int do_lock_file (const char *fil
+ 
+ 	if (link (file, lock) == 0) {
+ 		retval = check_link_count (file);
++		if (log && retval == 0) {
++			(void) fprintf (stderr,
++			                "%s: %s: lock file already used\n",
++			                Prog, file);
++		}
+ 		unlink (file);
+ 		return retval;
+ 	}
+ 
+ 	fd = open (lock, O_RDWR);
+ 	if (-1 == fd) {
++		if (log) {
++			(void) fprintf (stderr,
++			                "%s: %s: %s\n",
++			                Prog, file, strerror (errno));
++		}
+ 		unlink (file);
+ 		errno = EINVAL;
+ 		return 0;
+@@ -170,29 +191,54 @@ static int do_lock_file (const char *fil
+ 	len = read (fd, buf, sizeof (buf) - 1);
+ 	close (fd);
+ 	if (len <= 0) {
++		if (log) {
++			(void) fprintf (stderr,
++			                "%s: existing lock file %s without a PID\n",
++			                Prog, lock);
++		}
+ 		unlink (file);
+ 		errno = EINVAL;
+ 		return 0;
+ 	}
+ 	buf[len] = '\0';
+ 	if (get_pid (buf, &pid) == 0) {
++		if (log) {
++			(void) fprintf (stderr,
++			                "%s: existing lock file %s with an invalid PID '%s'\n",
++			                Prog, lock, buf);
++		}
+ 		unlink (file);
+ 		errno = EINVAL;
+ 		return 0;
+ 	}
+ 	if (kill (pid, 0) == 0) {
++		if (log) {
++			(void) fprintf (stderr,
++			                "%s: lock %s already used by PID %d\n",
++			                Prog, lock, pid);
++		}
+ 		unlink (file);
+ 		errno = EEXIST;
+ 		return 0;
+ 	}
+ 	if (unlink (lock) != 0) {
++		if (log) {
++			(void) fprintf (stderr,
++			                "%s: cannot get lock %s: %s\n",
++			                Prog, lock, strerror (errno));
++		}
+ 		unlink (file);
+ 		return 0;
+ 	}
+ 
+ 	retval = 0;
+-	if ((link (file, lock) == 0) && (check_link_count (file) != 0)) {
+-		retval = 1;
++	if (link (file, lock) == 0) {
++		retval = check_link_count (file);
++		if (log && retval == 0) {
++			(void) fprintf (stderr,
++			                "%s: %s: lock file already used\n",
++			                Prog, file);
++		}
+ 	}
+ 
+ 	unlink (file);
+@@ -325,7 +371,7 @@ bool commonio_present (const struct comm
+ }
+ 
+ 
+-int commonio_lock_nowait (struct commonio_db *db)
++int commonio_lock_nowait (struct commonio_db *db, bool log)
+ {
+ 	char file[1024];
+ 	char lock[1024];
+@@ -337,7 +383,7 @@ int commonio_lock_nowait (struct commoni
+ 	snprintf (file, sizeof file, "%s.%lu",
+ 	          db->filename, (unsigned long) getpid ());
+ 	snprintf (lock, sizeof lock, "%s.lock", db->filename);
+-	if (do_lock_file (file, lock) != 0) {
++	if (do_lock_file (file, lock, log) != 0) {
+ 		db->locked = true;
+ 		lock_count++;
+ 		return 1;
+@@ -361,11 +407,16 @@ int commonio_lock (struct commonio_db *d
+ 	 */
+ 	if (0 == lock_count) {
+ 		if (lckpwdf () == -1) {
++			if (geteuid () != 0) {
++				(void) fprintf (stderr,
++				                "%s: Permission denied.\n",
++				                Prog);
++			}
+ 			return 0;	/* failure */
+ 		}
+ 	}
+ 
+-	if (commonio_lock_nowait (db) != 0) {
++	if (commonio_lock_nowait (db, true) != 0) {
+ 		return 1;	/* success */
+ 	}
+ 
+@@ -388,11 +439,13 @@ int commonio_lock (struct commonio_db *d
+ 		if (i > 0) {
+ 			sleep (LOCK_SLEEP);	/* delay between retries */
+ 		}
+-		if (commonio_lock_nowait (db) != 0) {
++		if (commonio_lock_nowait (db, i==LOCK_TRIES-1) != 0) {
+ 			return 1;	/* success */
+ 		}
+ 		/* no unnecessary retries on "permission denied" errors */
+ 		if (geteuid () != 0) {
++			(void) fprintf (stderr, "%s: Permission denied.\n",
++			                Prog);
+ 			return 0;
+ 		}
+ 	}
+Index: shadow-4.1.4.3/lib/commonio.h
+===================================================================
+--- shadow-4.1.4.3.orig/lib/commonio.h
++++ shadow-4.1.4.3/lib/commonio.h
+@@ -141,7 +141,7 @@ struct commonio_db {
+ extern int commonio_setname (struct commonio_db *, const char *);
+ extern bool commonio_present (const struct commonio_db *db);
+ extern int commonio_lock (struct commonio_db *);
+-extern int commonio_lock_nowait (struct commonio_db *);
++extern int commonio_lock_nowait (struct commonio_db *, bool log);
+ extern int commonio_open (struct commonio_db *, int);
+ extern /*@observer@*/ /*@null@*/const void *commonio_locate (struct commonio_db *, const char *);
+ extern int commonio_update (struct commonio_db *, const void *);

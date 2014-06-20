@@ -1,0 +1,28 @@
+--- a/src/groupdel.c
++++ b/src/groupdel.c
+@@ -91,7 +91,7 @@ static void group_busy (gid_t);
+ static void usage (void)
+ {
+ 	(void) fprintf (stderr,
+-					_("Usage: groupdel [options]\n"
++					_("Usage: groupdel [options] [GROUP]\n"
+ 					  "\n"
+ 					  "Options:\n"),
+ 					Prog);
+@@ -407,6 +407,16 @@ int main (int argc, char **argv)
+ 
+ 	process_flags (argc, argv);
+ 
++	/*
++	 * We want to allow for an old style "groupdel <group>" invocation.
++	 * This will replace anything set by a "-g" flag.
++	 */
++	if (optind < argc) {
++		group_name = argv[optind++];
++		if (optind < argc)
++			fprintf(stderr, _("%s: Ignoring extra GROUP arguments!\n"),Prog);
++	}
++
+ #ifdef ACCT_TOOLS_SETUID
+ #ifdef USE_PAM
+ 	{
