@@ -2,7 +2,7 @@
 # add install search path /usr/lib/ to FILES
 # the ConsoleKit is installed in /usr/lib not /usr/lib64
 
-PRINC = "2"
+PR = "r500"
 
 FILES_${PN} += "${prefix}/lib/ConsoleKit"
 do_install_append() {

@@ -2,7 +2,7 @@
 #
 # Replace harmless errors with warnings to meet WR Feature Testing cases.
 
-PRINC = "1"
+PR = "r500"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 

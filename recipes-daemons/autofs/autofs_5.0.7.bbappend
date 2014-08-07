@@ -1,6 +1,6 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-PRINC = "5"
+PR = "r500"
 
 EXTRA_OECONF += "--without-systemd --with-fifodir=${localstatedir}/run --with-flagdir=${localstatedir}/run"
 

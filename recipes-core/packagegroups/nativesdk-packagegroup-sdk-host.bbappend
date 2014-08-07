@@ -1,7 +1,7 @@
 # Things we want to add to an sdk image
 #
 
-PRINC = "1"
+PR = "r500"
 
 RDEPENDS_${PN}_append = " nativesdk-cmake"
 

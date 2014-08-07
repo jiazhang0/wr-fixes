@@ -5,7 +5,7 @@
 #
 # Copyright (C) 2013 Wind River Systems, Inc.
 #
-PRINC = "2"
+PR = "r500"
 
 FILESPATH_append := ":${@base_set_filespath(['${THISDIR}'], d)}/${PN}"
 SRC_URI += "file://smart-pick-a-same-arch-for-multilib-do_install.patch"

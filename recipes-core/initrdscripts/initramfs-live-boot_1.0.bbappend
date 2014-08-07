@@ -4,7 +4,7 @@
 # LOCAL REV: UNIONFS was disable in oe-core
 #
 
-PRINC = "1"
+PR = "r500"
 
 do_install_append () {
 	if [ "x${ENABLE_LIVE_UNIONFS}" == "x1" ]; then

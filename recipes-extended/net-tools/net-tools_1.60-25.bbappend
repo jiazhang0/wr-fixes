@@ -8,7 +8,7 @@
 
 # add this to PR
 #
-PRINC = "2"
+PR = "r500"
 
 # so we can find our patch
 #

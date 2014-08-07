@@ -8,7 +8,7 @@
 #
 # Upstream-status: pending: parse_syslog_conf.patch
 
-PRINC = "6"
+PR = "r500"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 

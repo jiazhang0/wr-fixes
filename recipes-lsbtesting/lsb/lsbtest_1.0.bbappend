@@ -3,7 +3,7 @@
 #
 # Upstream-status: pending
 
-PRINC = "2"
+PR = "r500"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/lsbtest:"
 

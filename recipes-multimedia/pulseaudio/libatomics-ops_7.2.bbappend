@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2012 Wind River Systems, Inc.
 #
-PRINC = "1"
+PR = "r500"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
