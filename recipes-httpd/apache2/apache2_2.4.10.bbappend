@@ -24,7 +24,4 @@ FILES_${PN} += "${libdir}/cgi-bin"
 #Disable parallel make install
 PARALLEL_MAKEINST = ""
 
-FILES_${PN} += "${libdir}/${BPN} ${datadir}/${BPN}/"
-
-FILES_${PN}-doc += " ${datadir}/${BPN}/manual"
-FILES_${PN}-dev += " ${includedir}/${BPN}"
+FILES_${PN} += "${datadir}/${BPN}/"
