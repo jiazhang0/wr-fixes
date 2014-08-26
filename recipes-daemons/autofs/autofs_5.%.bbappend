@@ -1,8 +1,6 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-PR = "r500"
-
-EXTRA_OECONF += "--without-systemd --with-fifodir=${localstatedir}/run --with-flagdir=${localstatedir}/run"
+EXTRA_OECONF += "--with-fifodir=${localstatedir}/run --with-flagdir=${localstatedir}/run"
 
 do_configure_prepend() {
 	export piddir=${localstatedir}/run
