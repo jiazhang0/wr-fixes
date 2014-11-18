@@ -22,3 +22,26 @@ do_compile_class-native () {
     make grub_script.yy.h
     make grub-mkimage
 }
+
+do_install_class-target() {
+	grub-mkimage -c ../cfg -p /EFI/BOOT -d ./grub-core/ \
+	               -O ${GRUB_TARGET}-efi -o ./${GRUB_IMAGE} \
+	               boot linux ext2 fat serial part_msdos part_gpt normal efi_gop iso9660 search
+	install -d ${D}/boot/efi/EFI/BOOT/${GRUB_TARGET}-efi/
+	install -m 644 ${GRUB_IMAGE} ${D}/boot/efi/EFI/BOOT
+
+	# Install the modules to grub-efi's search path
+	make -C grub-core install DESTDIR=${D}/boot/efi/EFI/BOOT/ pkglibdir=""
+
+	# Generate startup.nsh, we have the boot info in GRUB_IMAGE, the
+	# startup.nsh is only used for running GRUB_IMAGE.
+cat > ${D}/boot/efi/startup.nsh <<_EOF
+echo -off
+
+echo "Running ${GRUB_IMAGE}..."
+${GRUB_IMAGE}
+_EOF
+}
+
+FILES_${PN}-dbg += "/boot/efi/EFI/BOOT/${GRUB_TARGET}-efi/.debug"
+FILES_${PN} += "/boot/efi/"
