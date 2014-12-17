@@ -3,5 +3,8 @@
 
 PR = "r500"
 
-RDEPENDS_${PN}_append = " nativesdk-cmake"
+WRCMAKE ?= "nativesdk-cmake"
+WRCMAKE_sdkmingw32 = ""
+
+RDEPENDS_${PN} += " ${WRCMAKE}"
 
