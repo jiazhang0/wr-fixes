@@ -23,12 +23,19 @@ done < /proc/mounts
 if test $nfsroot -eq 1; then
     NET_DEVS=`cat /proc/net/dev | sed -ne 's/^\([a-zA-Z0-9 ]*\):.*$/\1/p'`
     NET_ADDR=`cat /proc/cmdline | sed -ne 's/^.*ip=\([^ :]*\).*$/\1/p'`
-    if [ ! -z "$NET_ADDR" ]; then
+    NFS_SERVERIP=`cat /proc/cmdline | sed -ne 's/^.*nfsroot=\([^ :]*\).*$/\1/p'`
+    if [ ! -z "$NET_ADDR" ] && [ ! -z "$NFS_SERVERIP" ]; then
 	if [ "$NET_ADDR" = dhcp ]; then
-	    ethn=`ifconfig | grep "^eth" | sed -e "s/\(eth[0-9]\)\(.*\)/\1/"`
-	    if [ ! -z "$ethn" ]; then
-		EXTRA_PARAM="-I $ethn"
-	    fi
+            for i in $NET_DEVS; do
+                ADDR=`ifconfig $i | sed 's/addr://g' | sed -ne 's/^.*inet \([0-9.]*\) .*$/\1/p'`
+                if [ ! -z "$ADDR" ]; then
+                    ping -c 1 -I $i $NFS_SERVERIP > /dev/null
+                    if [ $? -eq 0 ]; then
+                        EXTRA_PARAM="-I $i"
+                        break
+                    fi
+                fi
+            done
 	else
 	    for i in $NET_DEVS; do
 		ADDR=`ifconfig $i | sed 's/addr://g' | sed -ne 's/^.*inet \([0-9.]*\) .*$/\1/p'`
