@@ -1,0 +1,33 @@
+It fails to rename a file which is just created on Ubuntu 12.04. That is weird
+and hard to debug. Add this workaround to retry 3 times and abort if still failed.
+
+Upstream-Status: Pending
+
+Signed-off-by: Kai Kang <kai.kang@windriver.com>
+---
+diff --git a/build-aux/ltmain.in b/build-aux/ltmain.in
+index d5cf07a..2ec9f21 100644
+--- a/build-aux/ltmain.in
++++ b/build-aux/ltmain.in
+@@ -827,7 +827,21 @@ pic_object=$write_lobj
+ non_pic_object=$write_oldobj
+ 
+ EOF
++
++    count=1
++    while true ; do
+       $MV "${write_libobj}T" "$write_libobj"
++      ret=$?
++      if [ $ret -eq 0 ]; then
++        break;
++      fi
++      if [ $count -gt 3 ]; then
++        exit $ret
++      fi
++      sleep $count
++      count=`expr $count + 1`
++    done 2>&1 | tee -a $(dirname $0)/libtool-rename-loT.log
++
+     }
+ }
+ 
