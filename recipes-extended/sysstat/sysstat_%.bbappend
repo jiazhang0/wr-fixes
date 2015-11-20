@@ -3,11 +3,11 @@
 #
 # LOCAL REV: WR specific fixes
 #
-# Enable/disable lm-sensors which provided by wr-kernel
+# Enable/disable lm-sensors which provided by meta-oe
 #
 
 PACKAGECONFIG ??= ""
-PACKAGECONFIG[lm-sensors] = "--enable-sensors,--disable-sensors,lm-sensors,libsensors"
+PACKAGECONFIG[lm-sensors] = "--enable-sensors,--disable-sensors,lmsensors,lmsensors-libsensors"
 
 EXTRA_OEMAKE=''
 EXTRA_OECONF += "--disable-stripping"
