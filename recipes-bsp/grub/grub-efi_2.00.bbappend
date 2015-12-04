@@ -24,18 +24,21 @@ do_compile_class-native () {
 }
 
 do_install_append_class-target() {
-	if [ -f ${GRUB_IMAGE} ]; then
-		install -d ${D}/boot/efi/EFI/BOOT/${GRUB_TARGET}-efi/
-		install -m 644 ${GRUB_IMAGE} ${D}/boot/efi/EFI/BOOT
-		# Generate startup.nsh, we have the boot info in GRUB_IMAGE, the
-		# startup.nsh is only used for running GRUB_IMAGE.
+	install -d ${D}/boot/efi/EFI/BOOT/${GRUB_TARGET}-efi/
+	grub-mkimage -c ../cfg -p /EFI/BOOT -d ./grub-core/ \
+	           -O ${GRUB_TARGET}-efi -o ${D}/boot/efi/EFI/BOOT/${GRUB_IMAGE} \
+	           ${GRUB_BUILDIN}
+	# Install the modules to grub-efi's search path
+	make -C grub-core install DESTDIR=${D}/boot/efi/EFI/BOOT/ pkglibdir=""
+
+	# Generate startup.nsh, we have the boot info in GRUB_IMAGE, the
+	# startup.nsh is only used for running GRUB_IMAGE.
 cat > ${D}/boot/efi/startup.nsh <<_EOF
 echo -off
 
 echo "Running ${GRUB_IMAGE}..."
 ${GRUB_IMAGE}
 _EOF
-	fi
 }
 
 FILES_${PN}-dbg += "/boot/efi/EFI/BOOT/${GRUB_TARGET}-efi/.debug"
