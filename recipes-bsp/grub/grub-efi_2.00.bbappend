@@ -4,7 +4,12 @@
 #
 PR .= ".fix0"
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/grub-efi-native:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/grub-efi:"
+FILESEXTRAPATHS_prepend_class-native := "${THISDIR}/grub-efi-native:"
+
+SRC_URI += " \
+    file://Work-around-the-failure-of-ExitBootServices.patch \
+"
 
 SRC_URI_append_class-native = " file://warnings.patch file://warnings2.patch file://no_mcmodel.patch"
 
