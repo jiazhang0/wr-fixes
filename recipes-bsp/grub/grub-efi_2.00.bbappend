@@ -48,3 +48,7 @@ _EOF
 
 FILES_${PN}-dbg += "/boot/efi/EFI/BOOT/${GRUB_TARGET}-efi/.debug"
 FILES_${PN} += "/boot/efi/"
+
+sysroot_stage_dirs_append() {
+    sysroot_stage_dir ${D}/boot ${SYSROOT_DESTDIR}/boot
+}
