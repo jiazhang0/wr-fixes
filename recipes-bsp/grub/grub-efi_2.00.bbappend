@@ -52,7 +52,3 @@ FILES_${PN}-dbg += "${EFI_BOOT_PATH}/${GRUB_TARGET}-efi/.debug"
 FILES_${PN} += "/boot/efi/"
 
 CONFFILES_${PN} += "${EFI_BOOT_PATH}/grub.cfg"
-
-sysroot_stage_dirs_append() {
-    sysroot_stage_dir ${D}/boot ${SYSROOT_DESTDIR}/boot
-}
