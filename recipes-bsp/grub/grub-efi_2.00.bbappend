@@ -33,8 +33,9 @@ EFI_BOOT_PATH = "/boot/efi/EFI/BOOT"
 do_install_append_class-target() {
 	install -d ${D}${EFI_BOOT_PATH}/${GRUB_TARGET}-efi/
 	grub-mkimage -c ../cfg -p /EFI/BOOT -d ./grub-core/ \
-	           -O ${GRUB_TARGET}-efi -o ${D}${EFI_BOOT_PATH}/${GRUB_IMAGE} \
+	           -O ${GRUB_TARGET}-efi -o ${B}/${GRUB_IMAGE} \
 	           ${GRUB_BUILDIN}
+	install -m 644 ${B}/${GRUB_IMAGE} ${D}${EFI_BOOT_PATH}/${GRUB_IMAGE}
 	# Install the modules to grub-efi's search path
 	make -C grub-core install DESTDIR=${D}${EFI_BOOT_PATH} pkglibdir=""
 
@@ -46,6 +47,11 @@ echo -off
 echo "Running ${GRUB_IMAGE}..."
 ${GRUB_IMAGE}
 _EOF
+}
+
+# Override the do_deploy() in oe-core.
+do_deploy_class-target() {
+        install -m 644 ${D}${EFI_BOOT_PATH}/${GRUB_IMAGE} ${DEPLOYDIR}
 }
 
 FILES_${PN}-dbg += "${EFI_BOOT_PATH}/${GRUB_TARGET}-efi/.debug"
