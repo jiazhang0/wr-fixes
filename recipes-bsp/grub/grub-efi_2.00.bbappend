@@ -32,7 +32,7 @@ EFI_BOOT_PATH = "/boot/efi/EFI/BOOT"
 
 do_install_append_class-target() {
 	install -d ${D}${EFI_BOOT_PATH}/${GRUB_TARGET}-efi/
-	grub-mkimage -c ../cfg -p /EFI/BOOT -d ./grub-core/ \
+	grub-mkimage -p /EFI/BOOT -d ./grub-core/ \
 	           -O ${GRUB_TARGET}-efi -o ${B}/${GRUB_IMAGE} \
 	           ${GRUB_BUILDIN}
 	install -m 644 ${B}/${GRUB_IMAGE} ${D}${EFI_BOOT_PATH}/${GRUB_IMAGE}
