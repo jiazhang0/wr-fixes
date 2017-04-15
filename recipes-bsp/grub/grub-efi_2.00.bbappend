@@ -39,6 +39,9 @@ do_install_append_class-target() {
 	# Install the modules to grub-efi's search path
 	make -C grub-core install DESTDIR=${D}${EFI_BOOT_PATH} pkglibdir=""
 
+	# Remove .module
+	rm -f ${D}${EFI_BOOT_PATH}/${GRUB_TARGET}-efi/*.module
+
 	# Generate startup.nsh, we have the boot info in GRUB_IMAGE, the
 	# startup.nsh is only used for running GRUB_IMAGE.
 cat > ${D}/boot/efi/startup.nsh <<_EOF
